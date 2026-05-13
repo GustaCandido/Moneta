@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Moneta
 
-## Getting Started
+Micro SaaS pessoal de controle financeiro. Registre entradas e saídas, organize por contas e categorias, acompanhe investimentos e visualize sua saúde financeira em um dashboard unificado.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades
+
+- **Autenticação** — cadastro e login com email/senha via Supabase Auth
+- **Dashboard** — stat cards de entradas, saídas, saldo e % de economia vs. mês anterior; gráfico de barras dos últimos 6 meses; donut de gastos por categoria; resumo de investimentos
+- **Transações** — lançamento de entradas e saídas com filtro por intervalo de datas, conta, categoria, tipo e busca por descrição; paginação; edição e exclusão
+- **Transações recorrentes** — templates mensais (ex.: salário, aluguel, Netflix) materializados automaticamente ao abrir o mês
+- **Contas** — múltiplas carteiras/bancos com saldo calculado em tempo real
+- **Categorias** — categorias globais predefinidas + criação de categorias personalizadas por tipo (entrada/saída)
+- **Investimentos** — registro manual de aportes (renda fixa, renda variável, livre) com total acumulado
+- **Dark mode** — alternância de tema persistida
+- **Responsivo** — sidebar fixa no desktop, drawer no mobile
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 16 (App Router + Server Actions) |
+| Linguagem | TypeScript 5.9 |
+| Estilização | Tailwind CSS v4 |
+| Componentes | shadcn/ui (base-nova — Base UI) |
+| Gráficos | Recharts via shadcn/charts |
+| Estado servidor | TanStack Query v5 |
+| Formulários | React Hook Form + Zod 4 |
+| Backend/DB | Supabase (Auth + Postgres + RLS) |
+| Ícones | Lucide React |
+| Datas | date-fns (locale pt-BR) |
+| Fontes | Inter (corpo) + Geist Mono (títulos) |
+| Toasts | Sonner |
+| Tema | next-themes |
+
+---
+
+## Estrutura de pastas
+
+```
+src/
+├── app/
+│   ├── (auth)/          # login, cadastro
+│   └── (app)/           # dashboard, transações, contas, investimentos, configurações
+├── components/
+│   ├── ui/              # componentes shadcn
+│   ├── layout/          # sidebar, topbar, user-menu, app-shell
+│   ├── dashboard/       # stat cards, gráficos, savings-rate-card
+│   ├── transacoes/      # form dialog, tabela, filtros, delete dialog
+│   ├── contas/          # form dialog, cards de conta
+│   ├── investimentos/   # form dialog, lista de aportes
+│   └── configuracoes/   # categorias, recorrências
+├── server/
+│   ├── supabase/        # clients (server, browser, middleware)
+│   └── actions/         # Server Actions (auth, transactions, accounts, categories, recurring, investments)
+├── hooks/               # TanStack Query hooks
+├── lib/
+│   ├── schemas/         # schemas Zod compartilhados
+│   ├── formatters.ts    # formatBRL, formatDate, formatPercent
+│   └── period.ts        # helpers de período/data
+└── types/
+    ├── domain.ts        # tipos de domínio
+    └── database.ts      # tipos gerados pelo Supabase
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Banco de dados (Supabase)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Tabelas com RLS habilitado (`user_id = auth.uid()`):
 
-## Learn More
+- `profiles` — dados do usuário
+- `accounts` — contas/carteiras
+- `categories` — categorias globais e personalizadas
+- `transactions` — lançamentos financeiros
+- `recurring_transactions` — templates de transações recorrentes
+- `investments` — aportes de investimento
 
-To learn more about Next.js, take a look at the following resources:
+RPCs Postgres:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `dashboard_metrics(month)` — métricas agregadas do mês
+- `materialize_recurring_for_month(month)` — materializa recorrências do mês de forma idempotente
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Configuração local
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# 1. Instalar dependências
+pnpm install
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 2. Configurar variáveis de ambiente
+cp .env.example .env.local
+# Preencher NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+# 3. Rodar em desenvolvimento
+pnpm dev
+```
+
+Acesse `http://localhost:3000`.
